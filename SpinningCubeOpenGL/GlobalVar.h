@@ -7,7 +7,6 @@
 
 extern float gAmplitude;
 extern unsigned int currAudioDevice;
-extern PaStream* stream;
 
 inline float vertices[] = {
     //face arriere (z = -0.5)

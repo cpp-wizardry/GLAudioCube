@@ -1,8 +1,9 @@
 #pragma once
 #include "stdafx.h"
 #include "wavHead.h"
-#include "audioData.h"
-
+#include "AudioManager.h"
+#include "3DModelLoader.h"
+using vertex = std::vector<std::vector<float>>;
 struct RGB {
 	float red = 0.0f;
 	float green = 0.0f;
@@ -23,7 +24,7 @@ struct Cube
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 unsigned int compileShader(unsigned int type, const char* source);
-void processInputs(GLFWwindow* window, Cube& r,std::vector<int16_t> data);
+void processInputs(GLFWwindow* window, Cube& r);
 
 unsigned int loadTexture(const char* filename);
 
@@ -32,8 +33,6 @@ std::string openFileDialog(unsigned int MODE);
 
 bool initialize(GLFWwindow*& window);
 
-bool loadAudio(const char* path, WAV_HEADER& header, std::vector<int16_t>& data);
-float normalizeAudioData(const std::vector<int16_t>& samples, size_t offset, size_t chunkSize);
-PaStream* playBack(const std::vector<int16_t>& data, const WAV_HEADER& header, AudioData* audioData);
 
 bool crashDumpWav(const WAV_HEADER& header, const std::string& filePath);
+
