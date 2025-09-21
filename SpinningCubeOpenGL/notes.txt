@@ -1,0 +1,245 @@
+charger un object 3D 
+
+
+prototype lecture wav file
+bool loadAudio(const char* Path) {
+
+    WAV_HEADER audio;
+    FILE* wavFile;
+    int headerSize = sizeof(WAV_HEADER), filelength = 0;
+
+    wavFile = fopen(Path, "rb");
+    if (wavFile == NULL)
+    {
+        std::cerr << "Failed to read file";
+        exit(-1);
+    }
+    
+    filelength = getFileSize(wavFile);
+    size_t bytesRead = fread(&audio,1,headerSize,wavFile);
+    if (bytesRead > 0)
+    {
+        uint16_t bytesPerSample = audio.bitsPerSample / 8;
+        uint64_t numSamples = audio.dataSize / bytesPerSample;
+        static const uint16_t BUFFER_SIZE = 4096;
+        int8_t* buffer = new int8_t[BUFFER_SIZE];
+        while ((bytesRead = fread(buffer, sizeof buffer[0], BUFFER_SIZE / (sizeof buffer[0]), wavFile)) > 0)
+        {
+            std::cout << "Read " << bytesRead << " bytes." << std::endl;
+        }
+
+    }
+    else
+    {
+        std::cerr << "error no bytes read " << wavFile;
+
+    }
+
+    fclose(wavFile);
+    return NULL;
+
+}
+
+
+
+
+
+    /*data.resize(header.dataSize);
+    file.read(reinterpret_cast<char*>(data.data()), header.dataSize);
+
+    if (!file) {
+        std::cerr << "Failed to read audio data\n";
+        
+        return false;
+    }
+
+    return true;*/
+
+
+
+bool foundData = false;
+while (file.read(reinterpret_cast<char*>(&chunkName), 4)) {
+    file.read(reinterpret_cast<char*>(&chunkSize), 4);
+
+    if (std::string(chunkName, 4) == "data") {
+        foundData = true;
+        header.Info.dataSize = chunkSize;
+        data.resize(chunkSize / sizeof(int16_t));
+        file.read(reinterpret_cast<char*>(data.data()), chunkSize);
+        break;
+    }
+    else {
+
+        file.seekg(chunkSize, std::ios::cur);
+    }
+}
+
+
+
+
+bool loadAudio(const char* Path, WAV_HEADER& header, std::vector<int16_t>& data) {
+    std::ifstream file(Path, std::ios::binary);
+    if (!file) {
+        std::cerr << "Failed to open file: " << Path << "\n";
+        return false;
+    }
+
+
+    file.read(reinterpret_cast<char*>(&header), sizeof(WAV_HEADER));
+    if (!file) {
+        std::cerr << "failed to read wav header\n";
+        return false;
+    }
+
+    if (std::string(header.RIFF, 4) != "RIFF" ||
+        std::string(header.WAVE, 4) != "WAVE") {
+        std::cerr << "Invalid WAV file\n";
+        return false;
+    }
+
+    bool foundFmt = false;
+    bool foundData = false;
+    
+    WAV_INFO localInfo;
+
+    
+
+    while (file)
+    {
+        char chunkName[4];
+        uint32_t chunkSize = 0;
+        if (!file.read(chunkName, 4)) break;
+        if (!file.read(reinterpret_cast<char*>(&chunkSize), 4))
+        {
+            std::cerr << "Failed to read chunk size";
+            return false;
+        }
+
+        std::string name(chunkName, 4);
+        std::cout << "found chunk" << name << "chunk size: " << chunkSize<<"\n";
+    
+
+        if (name == "fmt\0")
+        {
+            if (chunkSize < 16)
+            {
+                std::cerr << "fmt chunk is invalid" << chunkSize;
+                return false;
+            }
+        
+        std::vector<char> fmtBuff(chunkSize);
+
+        if (!file.read(fmtBuff.data(), chunkSize))
+        {
+            std::cerr << "Failed to read the fmt chunk";
+            return false;
+        }
+
+        localInfo.audioFormat = read_u16_le(fmtBuff.data() + 0);
+        localInfo.nbrChannels = read_u16_le(fmtBuff.data() + 2);
+        localInfo.sampleRate = read_u32_le(fmtBuff.data() + 4);
+        //header.dataSubChunk = read_u16_le(fmtBuff.data() + 8);
+        //header.byteRate = read_u32_le(fmtBuff.data() + 12);
+        localInfo.bitsPerSample = read_u16_le(fmtBuff.data() + 14);
+
+        foundFmt = true;
+    }
+    else if (name =="data")
+    {
+            if (!foundFmt)
+            {
+                std::cerr << "found data before fmt";
+                return false;
+            }
+
+            if (!chunkSize == 0)
+            {
+                std::cerr << "data chunk size is zero";
+                return false;
+            }
+            
+            if (localInfo.audioFormat != 1)
+            {
+                std::cerr << "Wav file format isn't PCM my dumbass is working on it" << localInfo.audioFormat;
+                return false;
+            }
+            if (localInfo.bitsPerSample != 16)
+            {
+                std::cerr << "Unsupported bps currently working on it" << localInfo.bitsPerSample;
+                return false;
+            }
+            if (localInfo.nbrChannels == 0)  
+            {
+                std::cerr << "invalid number of channel" << localInfo.nbrChannels;
+                return false;
+            }
+            size_t bytesPerSample = localInfo.bitsPerSample /8;
+            if (bytesPerSample ==0)
+            {
+                std::cerr << "Invalid bytes Per sample :" << bytesPerSample;
+                return false;
+            }
+            if (chunkSize % bytesPerSample != 0)
+            {
+                std::cerr << " data chunk size is not a multiple of sample size" << chunkSize % bytesPerSample;
+                return false;
+            }
+            
+            size_t sampleCount = chunkSize / bytesPerSample;
+
+            try
+            {
+                data.resize(sampleCount);
+            }
+            catch (...)
+            {
+                std::cerr << "Failed to allocate sample buffer";
+                return false;
+            }
+            if (!file.read(reinterpret_cast<char*>(data.data()),chunkSize))
+            {
+                std::cerr << "Failed to read the audio data";
+                return false;
+            }
+
+            if (chunkSize % 2 == 1) file.seekg(1, std::ios::cur);
+            
+            localInfo.dataSize = chunkSize;
+
+            foundData = true;
+            break;
+    }
+    else
+    {
+            file.seekg(chunkSize, std::ios::cur);
+            if (chunkSize % 2 == 1) file.seekg(1, std::ios::cur);
+    }
+}
+if (!foundData)
+{
+    std::cerr <<"No data chunk has been found";
+    return false;
+
+}
+    return true;
+}
+
+
+
+float normalizeAudioData(const std::vector<int16_t>& samples, size_t offset, size_t chunkSize) {
+    if (samples.empty()) return 0.0f;
+    if (offset >= samples.size()) return 0.0f;
+   
+    size_t available = samples.size();
+    size_t processed = min(available,chunkSize);
+    if (processed == 0) return 0.0f;
+    double sumSq = 0.0f;
+
+
+    for (size_t i = 0; i < processed; i++) {
+        double normalized = static_cast<double>(samples[offset + i] / 32768.0f);
+        sumSq += normalized * normalized; 
+    }
+    double rms = std::sqrt(sumSq / static_cast<double>(processed));
+    return rms;
+}
