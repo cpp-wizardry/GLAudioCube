@@ -1,8 +1,5 @@
 #pragma once
-#include "stdafx.h"
 #include "AudioManager.h"
-
-
 
 struct WAV_HEADER //44 bytes
 {

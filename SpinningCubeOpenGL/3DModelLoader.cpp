@@ -1,5 +1,6 @@
 #include "3DModelLoader.h"
 
+
 std::vector<float> loadOBJ(const std::string Path) {
     std::ifstream file(Path);
     if (!file) {
@@ -91,3 +92,34 @@ void centerAndNormalizeOBJ(std::vector<float>& vertices) {
     }
 }
 
+
+size_t reloadModel(const std::string& path, unsigned int VBO) {
+    if (path.empty()) return 0;
+    std::vector<float> newVertices = loadOBJ(path);
+    if (newVertices.empty()) {
+        std::cerr << "reloadModel: failed to load OBJ: " << path << "\n";
+        return 0;
+    }
+    centerAndNormalizeOBJ(newVertices);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, newVertices.size() * sizeof(float), newVertices.data(), GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    return newVertices.size() / 8;
+}
+
+unsigned int reloadTexture(const std::string& path, unsigned int oldTexture) {
+    if (!path.empty()) {
+        if (oldTexture != 0) {
+            glDeleteTextures(1, &oldTexture);
+        }
+        unsigned int newTex = loadTexture(path.c_str());
+        if (newTex == 0) {
+            std::cerr << "reloadTexture: failed to load: " << path << "\n";
+            return oldTexture; 
+        }
+        return newTex;
+    }
+    return oldTexture;
+}

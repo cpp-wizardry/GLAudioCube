@@ -132,7 +132,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="3DModelLoader.h" />
-    <ClInclude Include="audioData.h" />
+    <ClInclude Include="AppCon.h" />
+    <ClInclude Include="AudioManager.h" />
     <ClInclude Include="Functions.h" />
     <ClInclude Include="GlobalVar.h" />
     <ClInclude Include="stb_image.h" />
@@ -140,6 +141,8 @@
     <ClInclude Include="wavHead.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="3DModelLoader.cpp" />
+    <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="Functions.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Main.cpp" />

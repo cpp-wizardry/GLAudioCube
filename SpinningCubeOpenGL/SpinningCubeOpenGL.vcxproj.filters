@@ -29,10 +29,13 @@
     <ClInclude Include="wavHead.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="audioData.h">
+    <ClInclude Include="3DModelLoader.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="3DModelLoader.h">
+    <ClInclude Include="AudioManager.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="AppCon.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
   </ItemGroup>
@@ -51,6 +54,12 @@
     </ClCompile>
     <ClCompile Include="GlobalShader.h">
       <Filter>Fichiers d%27en-tête</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioManager.cpp">
+      <Filter>Fichiers de ressources</Filter>
+    </ClCompile>
+    <ClCompile Include="3DModelLoader.cpp">
+      <Filter>Fichiers de ressources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,4 +1,6 @@
 #pragma once
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -20,3 +22,6 @@ struct OBJVertex {
 
 std::vector<float> loadOBJ(const std::string Path);
 void centerAndNormalizeOBJ(std::vector<float>& vertices);
+size_t reloadModel(const std::string& path, unsigned int VBO);
+unsigned int reloadTexture(const std::string& path, unsigned int oldTexture);
+unsigned int loadTexture(const char* filename);

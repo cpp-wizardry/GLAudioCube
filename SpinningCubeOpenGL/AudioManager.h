@@ -5,7 +5,11 @@
 #include <cstdint>
 #include <mutex>
 #include <portaudio.h>
-
+#include <fstream>
+#include <cstring>
+#include <cmath>
+#include <algorithm>
+#include <iostream>
 
 
 struct WAV_INFO
@@ -42,6 +46,8 @@ public:
 	float getAmplitude(size_t chunkSize);
 	AudioMode getMode() const { return m_mode; }
 	const WAV_INFO& fileInfo()const { return m_fileInfo; }
+	bool switchToWavPlayback(AudioManager& audio, const std::string& wavPath);
+	bool switchToMic(AudioManager& audio);
 
 private:
 	std::vector<int16_t> m_fileSamples;

@@ -1,9 +1,5 @@
 #include "AudioManager.h"
-#include <fstream>
-#include <cstring>
-#include <cmath>
-#include <algorithm>
-#include <iostream>
+
 
 
 static uint16_t read_u16_le(const char* p) { uint16_t v; std::memcpy(&v, p, sizeof(v)); return v; }
@@ -214,7 +210,6 @@ int AudioManager::inCallback(const void* inBuffer, void* outBuffer, unsigned lon
 
 
 
-
 float AudioManager::normalizeData(size_t offset, size_t chunkSize)
 {
 	if (m_fileSamples.empty() || offset >= m_fileSamples.size()) return 0.0f;
@@ -231,4 +226,26 @@ float AudioManager::normalizeData(size_t offset, size_t chunkSize)
 
 
 
+bool AudioManager::switchToWavPlayback(AudioManager& audio, const std::string& Path) {
+	audio.stop();
+	if (Path.empty()) return false;
+	std::string w = const_cast<std::string&>(Path);
+	if (!audio.loadWavFile(w)) {
+		std::cerr << "switchToWavPlayback: loadWavFile failed for " << Path << "\n";
+		return false;
+	}
+	if (!audio.playBack()) {
+		std::cerr << "switchToWavPlayback: playBack failed\n";
+		return false;
+	}
+	return true;
+}
 
+bool AudioManager::switchToMic(AudioManager& audio) {
+	audio.stop();
+	if (!audio.startMicrophone()) {
+		std::cerr << "switchToMic: startMicrophone failed\n";
+		return false;
+	}
+	return true;
+}

@@ -40,40 +40,64 @@ bool initialize(GLFWwindow*& window) {
 }
 
 
-void processInputs(GLFWwindow* window,Cube& r) {
-    //rotation speed; Might move it to a struct later 
-    float rSpeed = 0.05f;
+void processInputs(GLFWwindow* window, Cube& cube, AppContext& ctx) {
+
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-    
-    //Rotate cube on X axis
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) r.rotX += rSpeed; 
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) r.rotX -= rSpeed;
-        
-    //Rotate cube on Y axis
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) r.rotY -= rSpeed;
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) r.rotY += rSpeed;
-  
-    //Rotate cube on Z axis
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) r.rotZ -= rSpeed;
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) r.rotZ += rSpeed;
-       
-    //Change cube scale
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) r.scale -= 0.01f;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) r.scale += 0.01f;
-    
-    //Reset cube's size and rotation
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) { r.rotX,r.rotY,r.rotZ,r.scale = 0; }
 
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) cube.rotZ -= cube.rSpeed; if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) cube.rotZ += cube.rSpeed;
     
-    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
-        ListAudioDevice(); Sleep(1000);
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) cube.rotX += cube.rSpeed;
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) cube.rotX -= cube.rSpeed;
+    //Rotate cube on Y axis 
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) cube.rotY -= cube.rSpeed;
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) cube.rotY += cube.rSpeed;
+    //Rotate cube on Z axis 
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) cube.rotZ -= cube.rSpeed;
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) cube.rotZ += cube.rSpeed;
+    
+    
+    static bool prevR = false, prevT = false, prevY = false, prevM = false;
+
+    bool keyR = (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS);
+    bool keyT = (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS);
+    bool keyY = (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS);
+    bool keyM = (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS);
+
+    if (keyR && !prevR) {
+        std::string newModel = openFileDialog(MODEL_3D);
+        size_t newCount = reloadModel(newModel, ctx.VBO);
+        if (newCount > 0) ctx.vertexCount = newCount;
     }
-    
-    //Cube scale boundaries
-    if (r.scale < 0.1f) r.scale = 0.1f;
-    if (r.scale > 3.0f) r.scale = 3.0f;
-};  
+    prevR = keyR;
+
+    if (keyT && !prevT) {
+        std::string newTex = openFileDialog(TEXTURE);
+        ctx.texture = reloadTexture(newTex, ctx.texture);
+    }
+    prevT = keyT;
+
+    if (keyY && !prevY) {
+        std::string newAudio = openFileDialog(AUDIO);
+        if (!newAudio.empty()) {
+            ctx.currentWavPath = newAudio;
+            ctx.audio->switchToWavPlayback(*ctx.audio, ctx.currentWavPath);
+        }
+    }
+    prevY = keyY;
+
+    if (keyM && !prevM) {
+        if (ctx.audio->getMode() == AudioMode::Micro) {
+            if (!ctx.currentWavPath.empty())
+                ctx.audio->switchToWavPlayback(*ctx.audio, ctx.currentWavPath);
+        }
+        else {
+            ctx.audio->switchToMic(*ctx.audio);
+        }
+    }
+    prevM = keyM;
+}
+
 
 void ListAudioDevice() {
     int numDevices = Pa_GetDeviceCount();
