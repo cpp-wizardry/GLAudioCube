@@ -45,8 +45,9 @@ void processInputs(GLFWwindow* window, Cube& cube, AppContext& ctx) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) cube.rotZ -= cube.rSpeed; if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) cube.rotZ += cube.rSpeed;
-    
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) cube.rotZ -= cube.rSpeed; 
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) cube.rotZ += cube.rSpeed;
+    //Rotate cube on X axis 
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) cube.rotX += cube.rSpeed;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) cube.rotX -= cube.rSpeed;
     //Rotate cube on Y axis 
@@ -57,12 +58,12 @@ void processInputs(GLFWwindow* window, Cube& cube, AppContext& ctx) {
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) cube.rotZ += cube.rSpeed;
     
     
-    static bool prevR = false, prevT = false, prevY = false, prevM = false;
+    static bool prevR = false, prevT = false, prevY = false, prevV = false;
 
     bool keyR = (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS);
     bool keyT = (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS);
     bool keyY = (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS);
-    bool keyM = (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS);
+    bool keyV = (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS);
 
     if (keyR && !prevR) {
         std::string newModel = openFileDialog(MODEL_3D);
@@ -86,7 +87,7 @@ void processInputs(GLFWwindow* window, Cube& cube, AppContext& ctx) {
     }
     prevY = keyY;
 
-    if (keyM && !prevM) {
+    if (keyV && !prevV) {
         if (ctx.audio->getMode() == AudioMode::Micro) {
             if (!ctx.currentWavPath.empty())
                 ctx.audio->switchToWavPlayback(*ctx.audio, ctx.currentWavPath);
@@ -95,7 +96,7 @@ void processInputs(GLFWwindow* window, Cube& cube, AppContext& ctx) {
             ctx.audio->switchToMic(*ctx.audio);
         }
     }
-    prevM = keyM;
+    prevV = keyV;
 }
 
 

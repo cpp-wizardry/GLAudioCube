@@ -243,7 +243,7 @@ bool AudioManager::switchToWavPlayback(AudioManager& audio, const std::string& P
 
 bool AudioManager::switchToMic(AudioManager& audio) {
 	audio.stop();
-	if (!audio.startMicrophone()) {
+	if (!audio.startMicrophone(Pa_GetDefaultInputDevice(),audio.m_audioData.channels)) {
 		std::cerr << "switchToMic: startMicrophone failed\n";
 		return false;
 	}
