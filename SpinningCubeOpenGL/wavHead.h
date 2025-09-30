@@ -1,8 +1,5 @@
 #pragma once
-#include "stdafx.h"
 #include "AudioManager.h"
-
-
 
 struct WAV_HEADER //44 bytes
 {
@@ -21,8 +18,5 @@ struct WAV_HEADER //44 bytes
 	WAV_INFO Info;
 };
 
-
-
-int getFileSize(FILE *file);
 
 

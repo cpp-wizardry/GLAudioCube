@@ -5,7 +5,12 @@
 #include <cstdint>
 #include <mutex>
 #include <portaudio.h>
-
+#include <fstream>
+#include <cstring>
+#include <cmath>
+#include <algorithm>
+#include <iostream>
+#include "mp3Head.h"
 
 
 struct WAV_INFO
@@ -36,22 +41,27 @@ public:
 	~AudioManager();
 	bool init();
 	bool loadWavFile(std::string &Path);
+	bool loadMp3File(std::string &Path);
 	bool playBack();
 	bool startMicrophone(int deviceIndex = paNoDevice, int channels = 1, double sampleRate = 44100);
-	void stop();
+	void stop(); 
 	float getAmplitude(size_t chunkSize);
 	AudioMode getMode() const { return m_mode; }
-	const WAV_INFO& fileInfo()const { return m_fileInfo; }
+	const WAV_INFO& fileInfo()const { return m_wavFileInfo; }
+	bool switchToWavPlayback(AudioManager& audio, const std::string& wavPath);
+	bool switchToMic(AudioManager& audio);
+
 
 private:
 	std::vector<int16_t> m_fileSamples;
-	WAV_INFO m_fileInfo;
+	WAV_INFO m_wavFileInfo;
 	AudioData m_audioData;
 	PaStream* m_stream;
 	std::atomic<float> m_micAmplitude;
 	std::atomic<float> m_fileAmplitude;
 	std::mutex m_mtx;
 	AudioMode m_mode;
+	MP3File m_mp3File;
 
 	bool openOutStream();
 	bool openInStream(int deviceIndex, int channels, double sampleRate);
@@ -60,7 +70,7 @@ private:
 	static int inCallback(const void* inBuffer, void* outBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statFlag, void* userData);
 	
 	bool scanWavFile(const std::string& Path);
-
+	bool scanMp3File(const std::string& Path);
 
 	float normalizeData(size_t offset, size_t chunkSize);
 };

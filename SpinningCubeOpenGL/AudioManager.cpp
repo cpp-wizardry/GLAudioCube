@@ -1,9 +1,5 @@
 #include "AudioManager.h"
-#include <fstream>
-#include <cstring>
-#include <cmath>
-#include <algorithm>
-#include <iostream>
+
 
 
 static uint16_t read_u16_le(const char* p) { uint16_t v; std::memcpy(&v, p, sizeof(v)); return v; }
@@ -72,7 +68,7 @@ bool AudioManager::scanWavFile(const std::string& Path)
 			if (chunkSize % 2 == 1) file.seekg(1, std::ios::cur);
 
 			localInfo.dataSize = chunkSize;
-			m_fileInfo = localInfo;
+			m_wavFileInfo = localInfo;
 			foundData = true;
 			break;
 		}
@@ -86,6 +82,78 @@ bool AudioManager::scanWavFile(const std::string& Path)
 	return foundData;
 }
 
+bool AudioManager::scanMp3File(const std::string& Path)
+{
+	std::ifstream file(Path, std::ios::binary);
+	if (!file)	
+	{
+		std::cerr << "Failed to open file";
+		return false;
+	}
+	//check si y'a ID3v2 tag au début du fichier, si y'en a pas on retourne au début du fichier et on lis le header sur 4 bytes
+	char testID[3];
+	if (!file.read(testID, 3)) return false;
+	std::string tag(testID, 3);
+	MP3File Mp3;
+	auto locIdHeader = Mp3.IDheader;
+	if (tag == "ID3") {
+		if (!file.read(locIdHeader.ID3Vers, 2))
+		{
+			std::cerr << "failed to read mp3 File after ID3v2 version";
+			return false;
+		}
+		if (!file.read(reinterpret_cast<char*>(&locIdHeader.ID3Flags), 1))
+		{
+			std::cerr << "failed to read mp3 File after ID3v2 flags";
+			return false;
+		}
+		uint8_t tempID3Size[4];
+		if (!file.read(reinterpret_cast<char*>(&tempID3Size), 4))
+		{
+			std::cerr << "failed to read mp3 File after ID3v2 size";
+			return false;
+		}
+		locIdHeader.ID3Size = (tempID3Size[0] << 21) | (tempID3Size[1] << 14) | (tempID3Size[2] << 7) | (tempID3Size[3]);
+
+		std::cout << "ID3v2 version: " << (int)locIdHeader.ID3Vers[0] << "." << (int)locIdHeader.ID3Vers[1] << "\n";
+		std::cout << "Flags: " << (int)locIdHeader.ID3Flags << "\n";
+		std::cout << "Tag size: " << locIdHeader.ID3Size << " bytes\n";
+
+		file.seekg(locIdHeader.ID3Size, std::ios::cur);
+	}
+	else
+	{
+		file.seekg(0);
+	}
+	// big endian
+	uint32_t localHeader;
+	file.read(reinterpret_cast<char*>(&localHeader), 4);
+	//conv little endian
+	Mp3.fileheader.header = ((localHeader & 0xFF) << 24) | ((localHeader & 0xFF00) << 8) | ((localHeader & 0xFF0000) >> 8) | ((localHeader & 0xFF000000) >> 24);
+
+	while (file) {
+		uint32_t rawHeader;
+		file.read(reinterpret_cast<char*>(&rawHeader), 4);
+		if (!file) break;
+
+		uint32_t header = ((rawHeader & 0xFF) << 24) |
+			((rawHeader & 0xFF00) << 8) |
+			((rawHeader & 0xFF0000) >> 8) |
+			((rawHeader & 0xFF000000) >> 24);
+
+		int frameSize = getFrameSize(header);
+		if (frameSize <= 0) {
+			std::cerr << "Invalid frame header\n";
+			break;
+		}
+
+		// Skip the frame payload
+		file.seekg(frameSize - 4, std::ios::cur);
+	}
+
+	return true;
+}
+
 
 bool AudioManager::loadWavFile(std::string& Path) {
 	std::lock_guard<std::mutex> lk(m_mtx);
@@ -93,8 +161,14 @@ bool AudioManager::loadWavFile(std::string& Path) {
 	m_audioData.samples = m_fileSamples.data();
 	m_audioData.totalFrames = m_fileSamples.size();
 	m_audioData.cursor = 0;
-	m_audioData.channels = m_fileInfo.nbrChannels;
+	m_audioData.channels = m_wavFileInfo.nbrChannels;
 	m_mode = AudioMode::WavFile;
+	return true;
+}
+
+bool AudioManager::loadMp3File(std::string& Path)
+{
+	if (!scanMp3File(Path)) return false;
 	return true;
 }
 
@@ -107,7 +181,7 @@ bool AudioManager::openOutStream() {
 	outParams.sampleFormat = paInt16;
 	outParams.suggestedLatency = Pa_GetDeviceInfo(outParams.device)->defaultLowOutputLatency;
 	outParams.hostApiSpecificStreamInfo = nullptr;
-	PaError err = Pa_OpenStream(&m_stream,nullptr,&outParams,m_fileInfo.sampleRate,paFramesPerBufferUnspecified,paNoFlag,outCallback,&m_audioData);
+	PaError err = Pa_OpenStream(&m_stream,nullptr,&outParams,m_wavFileInfo.sampleRate,paFramesPerBufferUnspecified,paNoFlag,outCallback,&m_audioData);
 	if (err != paNoError)return false;
 	err = Pa_StartStream(m_stream);
 	return(err == paNoError);
@@ -214,7 +288,6 @@ int AudioManager::inCallback(const void* inBuffer, void* outBuffer, unsigned lon
 
 
 
-
 float AudioManager::normalizeData(size_t offset, size_t chunkSize)
 {
 	if (m_fileSamples.empty() || offset >= m_fileSamples.size()) return 0.0f;
@@ -231,4 +304,26 @@ float AudioManager::normalizeData(size_t offset, size_t chunkSize)
 
 
 
+bool AudioManager::switchToWavPlayback(AudioManager& audio, const std::string& Path) {
+	audio.stop();
+	if (Path.empty()) return false;
+	std::string w = const_cast<std::string&>(Path);
+	if (!audio.loadWavFile(w)) {
+		std::cerr << "switchToWavPlayback: loadWavFile failed for " << Path << "\n";
+		return false;
+	}
+	if (!audio.playBack()) {
+		std::cerr << "switchToWavPlayback: playBack failed\n";
+		return false;
+	}
+	return true;
+}
 
+bool AudioManager::switchToMic(AudioManager& audio) {
+	audio.stop();
+	if (!audio.startMicrophone(Pa_GetDefaultInputDevice(),audio.m_audioData.channels)) {
+		std::cerr << "switchToMic: startMicrophone failed\n";
+		return false;
+	}
+	return true;
+}

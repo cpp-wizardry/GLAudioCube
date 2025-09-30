@@ -3,6 +3,7 @@
 #include "wavHead.h"
 #include "AudioManager.h"
 #include "3DModelLoader.h"
+#include "AppCon.h"
 using vertex = std::vector<std::vector<float>>;
 struct RGB {
 	float red = 0.0f;
@@ -18,15 +19,14 @@ struct Cube
 	float scale = 0.5f;
 	RGB color;
 	unsigned int Tex;
+	float rSpeed = 0.05f;
 
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 unsigned int compileShader(unsigned int type, const char* source);
-void processInputs(GLFWwindow* window, Cube& r);
-
-unsigned int loadTexture(const char* filename);
+void processInputs(GLFWwindow* window, Cube& cube, AppContext& ctx);
 
 void ListAudioDevice();
 std::string openFileDialog(unsigned int MODE);
