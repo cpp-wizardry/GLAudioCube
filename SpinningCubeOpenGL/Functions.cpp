@@ -5,21 +5,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-unsigned int compileShader(unsigned int type, const char* source) {
-    unsigned int shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, NULL);
-    glCompileShader(shader);
-
-    int success;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char log[512];
-        glGetShaderInfoLog(shader, 512, NULL, log);
-        std::cerr << "Shader compilation error:\n" << log << std::endl;
-    }
-    return shader;
-}
-
 bool initialize(GLFWwindow*& window) {
     if (!glfwInit()) return false;
 
@@ -131,6 +116,8 @@ std::string openFileDialog(unsigned int MODE) {
         case 2:
             ofn.lpstrFilter = "Audio Files\0*.Wav;*.Mp3\0";
             break;
+        case 3:
+            ofn.lpstrFilter = "Shader Files\0*.vert;*.frag\0"; //later we might accept tesselation and geometry shader
     default:
         break;
     }

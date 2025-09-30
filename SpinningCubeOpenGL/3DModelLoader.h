@@ -7,7 +7,6 @@
 #include <sstream>
 #include <iostream>
 #include <glm/glm.hpp>
-#include <regex>
 
 
 struct OBJData {

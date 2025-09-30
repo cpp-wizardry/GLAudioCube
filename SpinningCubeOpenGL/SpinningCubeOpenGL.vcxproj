@@ -137,6 +137,7 @@
     <ClInclude Include="Functions.h" />
     <ClInclude Include="GlobalVar.h" />
     <ClInclude Include="mp3Head.h" />
+    <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="wavHead.h" />
@@ -148,6 +149,7 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="mp3Head.cpp" />
+    <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="std_impl.cpp" />
     <ClCompile Include="GlobalShader.h" />
   </ItemGroup>

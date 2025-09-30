@@ -1,9 +1,13 @@
-#ifndef AUDIO_GLOBALS_H
-#define AUDIO_GLOBALS_H
+#ifndef GLOBALS_H
+#define GLOBALS_H
 
-#define MODEL_3D 0
-#define TEXTURE 1
-#define AUDIO 2
+enum FileMode
+{
+    MODEL_3D = 0,
+    TEXTURE = 1,
+    AUDIO = 2,
+    SHADER =3
+};
 
 extern float gAmplitude;
 extern unsigned int currAudioDevice;

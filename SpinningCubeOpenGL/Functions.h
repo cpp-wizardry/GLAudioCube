@@ -1,8 +1,6 @@
 #pragma once
 #include "stdafx.h"
 #include "wavHead.h"
-#include "AudioManager.h"
-#include "3DModelLoader.h"
 #include "AppCon.h"
 using vertex = std::vector<std::vector<float>>;
 struct RGB {
@@ -25,7 +23,7 @@ struct Cube
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-unsigned int compileShader(unsigned int type, const char* source);
+
 void processInputs(GLFWwindow* window, Cube& cube, AppContext& ctx);
 
 void ListAudioDevice();

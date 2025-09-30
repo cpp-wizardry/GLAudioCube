@@ -684,6 +684,14 @@ Le loading du piano et des exports blender chie prck je sépare pas les deux obj
 soluce double vector au lieu d'un seul final data et revoir traitement de la donné
 
 
+loading shader custom: debut creation de class shadermanager; constru prend 2 paths et aprs on load (fiir loading faire gaffe au titre du file)
+
+bien faire modif compileshader (voir soit full compile en une function soit multiple call)
+
+
+
+
+
 
 
 

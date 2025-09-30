@@ -1,6 +1,7 @@
 #include "3DModelLoader.h"
 
 
+
 std::vector<MeshData> Manager3D::loadOBJ(const std::string& Path) {
     std::vector<MeshData> meshes;
     MeshData currentMesh;

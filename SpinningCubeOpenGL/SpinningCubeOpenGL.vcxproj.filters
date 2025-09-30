@@ -41,6 +41,9 @@
     <ClInclude Include="mp3Head.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="ShaderManager.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Functions.cpp">
@@ -65,6 +68,9 @@
       <Filter>Fichiers de ressources</Filter>
     </ClCompile>
     <ClCompile Include="mp3Head.cpp">
+      <Filter>Fichiers de ressources</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderManager.cpp">
       <Filter>Fichiers de ressources</Filter>
     </ClCompile>
   </ItemGroup>

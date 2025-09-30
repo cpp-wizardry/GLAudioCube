@@ -6,6 +6,7 @@
 #include "3DModelLoader.h"
 #include "AppCon.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "ShaderManager.h"
 
 int main() {
     GLFWwindow* window = nullptr;
@@ -14,6 +15,9 @@ int main() {
     Cube cube;
     AudioManager audio;
     Manager3D Mng3D;
+
+
+    ShaderManager shdr("vert.vert","frag.frag");
     if (!audio.init()) return -1;
 
     std::string objFilePath;
@@ -42,8 +46,10 @@ int main() {
         glEnableVertexAttribArray(2);
     }
 
-    unsigned int vertexShader = compileShader(GL_VERTEX_SHADER, lightVertexShader);
-    unsigned int fragmentShader = compileShader(GL_FRAGMENT_SHADER, lightFragmentShader);
+    
+
+    unsigned int vertexShader = shdr.compileShader(GL_VERTEX_SHADER, lightVertexShader);
+    unsigned int fragmentShader = shdr.compileShader(GL_FRAGMENT_SHADER, lightFragmentShader);
     unsigned int shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
