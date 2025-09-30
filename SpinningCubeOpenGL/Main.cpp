@@ -13,26 +13,34 @@ int main() {
 
     Cube cube;
     AudioManager audio;
+    Manager3D Mng3D;
     if (!audio.init()) return -1;
 
     std::string objFilePath;
     while (objFilePath.empty()) objFilePath = openFileDialog(MODEL_3D);
-    std::vector<float> vertices = loadOBJ(objFilePath);
-    if (vertices.empty()) return -1;
-    centerAndNormalizeOBJ(vertices);
+    std::vector<MeshData> meshes = Mng3D.loadOBJ(objFilePath);
+    
 
-    unsigned int VAO = 0, VBO = 0;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+    std::vector<unsigned int> VAOs(meshes.size()), VBOs(meshes.size());
+    glGenVertexArrays(meshes.size(), VAOs.data());
+    glGenBuffers(meshes.size(), VBOs.data());
+
+    for (size_t i = 0; i < meshes.size(); i++) {
+        glBindVertexArray(VAOs[i]);
+        glBindBuffer(GL_ARRAY_BUFFER, VBOs[i]);
+
+        glBufferData(GL_ARRAY_BUFFER,
+            meshes[i].vertices.size() * sizeof(float),
+            meshes[i].vertices.data(),
+            GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+        glEnableVertexAttribArray(2);
+    }
 
     unsigned int vertexShader = compileShader(GL_VERTEX_SHADER, lightVertexShader);
     unsigned int fragmentShader = compileShader(GL_FRAGMENT_SHADER, lightFragmentShader);
@@ -57,14 +65,21 @@ int main() {
     else {
         audio.startMicrophone();
     }
+    std::string tempPath = openFileDialog(AUDIO);
+    audio.loadMp3File(tempPath);
 
     AppContext ctx{};
-    ctx.VBO = VBO;
-    ctx.VAO = VAO;
+    for (size_t i = 0; i < VBOs.size(); i++) {
+        ctx.VBOs.push_back(VBOs[i]);
+        ctx.VAOs.push_back(VAOs[i]);
+    }
     ctx.texture = texture;
-    ctx.vertexCount = vertices.size() / 8;
+    ctx.vertexCounts.resize(meshes.size());
+    for (size_t i = 0; i < meshes.size(); i++) {
+        ctx.vertexCounts[i] = meshes[i].vertices.size() / 8;
+    }
     ctx.audio = &audio;
-    ctx.currentWavPath = audioPath;
+    ctx.currentAudioPath = audioPath;
 
     size_t audioCursorAdvance = 1024;
 
@@ -105,15 +120,17 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, ctx.texture);
         glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
 
-        glBindVertexArray(ctx.VAO);
-        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(ctx.vertexCount));
+        for (size_t i = 0; i < ctx.VAOs.size(); i++) {
+            glBindVertexArray(ctx.VAOs[i]);
+            glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(ctx.vertexCounts[i]));
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(static_cast<GLsizei>(VAOs.size()), VAOs.data());
+    glDeleteBuffers(static_cast<GLsizei>(VBOs.size()), VBOs.data());
     if (texture) glDeleteTextures(1, &texture);
     glDeleteProgram(shaderProgram);
 

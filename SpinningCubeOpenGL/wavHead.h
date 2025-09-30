@@ -20,6 +20,3 @@ struct WAV_HEADER //44 bytes
 
 
 
-int getFileSize(FILE *file);
-
-

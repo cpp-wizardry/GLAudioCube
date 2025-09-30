@@ -41,23 +41,21 @@ bool initialize(GLFWwindow*& window) {
 
 
 void processInputs(GLFWwindow* window, Cube& cube, AppContext& ctx) {
-
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) cube.rotZ -= cube.rSpeed; 
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) cube.rotZ += cube.rSpeed;
-    //Rotate cube on X axis 
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) cube.rotX += cube.rSpeed;
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) cube.rotX -= cube.rSpeed;
-    //Rotate cube on Y axis 
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) cube.rotY -= cube.rSpeed;
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) cube.rotY += cube.rSpeed;
-    //Rotate cube on Z axis 
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) cube.rotZ -= cube.rSpeed;
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) cube.rotZ += cube.rSpeed;
-    
-    
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) cube.rotX += cube.rSpeed;
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) cube.rotX -= cube.rSpeed;
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) cube.rotY -= cube.rSpeed;
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) cube.rotY += cube.rSpeed;
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) cube.scale += 0.05f;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cube.scale -= 0.05f;
+
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+        ctx.audio->loadMp3File(ctx.currentAudioPath);
+
     static bool prevR = false, prevT = false, prevY = false, prevV = false;
 
     bool keyR = (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS);
@@ -67,30 +65,33 @@ void processInputs(GLFWwindow* window, Cube& cube, AppContext& ctx) {
 
     if (keyR && !prevR) {
         std::string newModel = openFileDialog(MODEL_3D);
-        size_t newCount = reloadModel(newModel, ctx.VBO);
-        if (newCount > 0) ctx.vertexCount = newCount;
+        if (!newModel.empty()) {
+            ctx.vertexCounts = ctx.Mng3D.reloadModel(newModel, ctx.VBOs, ctx.VAOs);
+        }
     }
     prevR = keyR;
 
     if (keyT && !prevT) {
         std::string newTex = openFileDialog(TEXTURE);
-        ctx.texture = reloadTexture(newTex, ctx.texture);
+        if (!newTex.empty()) {
+            ctx.texture = ctx.Mng3D.reloadTexture(newTex, ctx.texture);
+        }
     }
     prevT = keyT;
 
     if (keyY && !prevY) {
         std::string newAudio = openFileDialog(AUDIO);
         if (!newAudio.empty()) {
-            ctx.currentWavPath = newAudio;
-            ctx.audio->switchToWavPlayback(*ctx.audio, ctx.currentWavPath);
+            ctx.currentAudioPath = newAudio;
+            ctx.audio->switchToWavPlayback(*ctx.audio, ctx.currentAudioPath);
         }
     }
     prevY = keyY;
 
     if (keyV && !prevV) {
         if (ctx.audio->getMode() == AudioMode::Micro) {
-            if (!ctx.currentWavPath.empty())
-                ctx.audio->switchToWavPlayback(*ctx.audio, ctx.currentWavPath);
+            if (!ctx.currentAudioPath.empty())
+                ctx.audio->switchToWavPlayback(*ctx.audio, ctx.currentAudioPath);
         }
         else {
             ctx.audio->switchToMic(*ctx.audio);
@@ -98,6 +99,7 @@ void processInputs(GLFWwindow* window, Cube& cube, AppContext& ctx) {
     }
     prevV = keyV;
 }
+
 
 
 void ListAudioDevice() {
@@ -127,7 +129,7 @@ std::string openFileDialog(unsigned int MODE) {
             ofn.lpstrFilter = "Image Files\0*.png;*.jpg;*.jpeg\0All Files\0*.*\0";
             break;
         case 2:
-            ofn.lpstrFilter = "Audio Files\0*.Wav\0";
+            ofn.lpstrFilter = "Audio Files\0*.Wav;*.Mp3\0";
             break;
     default:
         break;
