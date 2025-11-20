@@ -31,7 +31,6 @@ private:
 	std::string m_VertPath;
 	std::vector<char*> m_VertShaders;
 	std::vector<char*> m_FragShaders;
-	std::vector<const char*> source;
 
 
 };

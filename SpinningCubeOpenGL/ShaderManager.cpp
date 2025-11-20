@@ -24,11 +24,7 @@ bool ShaderManager::loadShaders(std::vector<char*> vertShaders, std::vector<char
 }
 
 
-unsigned int ShaderManager::compileShader(unsigned int type, std::vector<const char*> source) {
-    for (size_t i = 0; i < source.size(); i++)
-    {
-
-    }
+unsigned int ShaderManager::compileShader(unsigned int type, const char* source) {
     unsigned int shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
